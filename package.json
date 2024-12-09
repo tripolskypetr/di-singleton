@@ -1,6 +1,6 @@
 {
   "name": "di-singleton",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Wraps a class constructor to ensure only one instance is created, using lazy initialization and optionally calling an init method if present, while maintaining type safety via TypeScript generics.",
   "author": {
     "name": "Petr Tripolsky",

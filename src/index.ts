@@ -1,14 +1,41 @@
-const NEVER_VALUE = Symbol('never');
+import crypto from "crypto";
 
-export const singleton = <ClassType extends new (...args: any[]) => any>(ClassCtor: ClassType) => {
+interface ISingletonClassCtl<Args extends any[]> {
+  clear(): void;
+  clear(...args: Args): void;
+}
 
-  let instance: typeof NEVER_VALUE | InstanceType<ClassType> = NEVER_VALUE;
+const isPrimitive = (value: unknown): boolean => {
+  if (typeof value === "string") {
+    return true;
+  }
+  if (typeof value === "number") {
+    return true;
+  }
+  if (typeof value === "boolean") {
+    return true;
+  }
+  return false;
+};
+
+const getHash = (text: string) => {
+  return crypto.createHash("sha256").update(text).digest("hex");
+};
+
+export const singleton = <ClassType extends new (...args: any[]) => any>(
+  ClassCtor: ClassType
+): ClassType & ISingletonClassCtl<ConstructorParameters<ClassType>> => {
+  const instanceMap = new Map<string, InstanceType<ClassType>>();
 
   const activateInstance = (...args: ConstructorParameters<ClassType>) => {
-    if (instance === NEVER_VALUE) {
+    if (args.some((value) => !isPrimitive(value))) {
+      throw new Error(`di-singleton activateInstance not serializable arguments: ${JSON.stringify(args)}`);
+    }
+    const instanceKey = getHash(args.join("-"));
+    let instance = instanceMap.get(instanceKey);
+    if (!instance) {
       instance = new ClassCtor(...args);
-      // @ts-ignore
-      instance.init && instance.init();
+      instanceMap.set(instanceKey, instance!);
     }
     return instance as InstanceType<ClassType>;
   };
@@ -17,5 +44,17 @@ export const singleton = <ClassType extends new (...args: any[]) => any>(ClassCt
     return activateInstance(...args);
   }
 
-  return ClassActivator as unknown as ClassType;
+  ClassActivator.clear = (...args: any[]) => {
+    if (args.length) {
+      if (args.some((value) => !isPrimitive(value))) {
+        throw new Error(`di-singleton ClassActivator.clear not serializable arguments: ${JSON.stringify(args)}`);
+      }
+      const instanceKey = getHash(args.join("-"));
+      instanceMap.delete(instanceKey);
+      return;
+    }
+    instanceMap.clear();
+  };
+
+  return ClassActivator as unknown as ClassType & ISingletonClassCtl<ConstructorParameters<ClassType>>;
 };
