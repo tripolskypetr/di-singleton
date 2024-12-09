@@ -1,10 +1,5 @@
 import crypto from "crypto";
 
-export interface ISingletonClassCtl<Args extends any[]> {
-  clear(): void;
-  clear(...args: Args): void;
-}
-
 const isPrimitive = (value: unknown): boolean => {
   if (typeof value === "string") {
     return true;
@@ -24,7 +19,10 @@ const getHash = (text: string) => {
 
 export const singleton = <ClassType extends new (...args: any[]) => any>(
   ClassCtor: ClassType
-): ClassType & ISingletonClassCtl<ConstructorParameters<ClassType>> => {
+): ClassType & {
+  clear(): void;
+  clear(...args: ConstructorParameters<ClassType>): void;
+} => {
   const instanceMap = new Map<string, InstanceType<ClassType>>();
 
   const activateInstance = (...args: ConstructorParameters<ClassType>) => {
@@ -56,5 +54,8 @@ export const singleton = <ClassType extends new (...args: any[]) => any>(
     instanceMap.clear();
   };
 
-  return ClassActivator as unknown as ClassType & ISingletonClassCtl<ConstructorParameters<ClassType>>;
+  return ClassActivator as unknown as ClassType & {
+    clear(): void;
+    clear(...args: ConstructorParameters<ClassType>): void;
+  };
 };
