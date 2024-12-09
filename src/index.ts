@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-interface ISingletonClassCtl<Args extends any[]> {
+export interface ISingletonClassCtl<Args extends any[]> {
   clear(): void;
   clear(...args: Args): void;
 }

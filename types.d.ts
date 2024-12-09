@@ -4,4 +4,4 @@ interface ISingletonClassCtl<Args extends any[]> {
 }
 declare const singleton: <ClassType extends new (...args: any[]) => any>(ClassCtor: ClassType) => ClassType & ISingletonClassCtl<ConstructorParameters<ClassType>>;
 
-export { singleton };
+export { type ISingletonClassCtl, singleton };
